@@ -1,0 +1,35 @@
+name: Daily Stock Snapshot Job
+
+on:
+  schedule:
+    # Runs Monday to Friday at 10:30 AM UTC (4:00 PM IST)
+    - cron: '30 10 * * 1-5'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub UI
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install yfinance pandas numpy ta requests
+
+      - name: Run Snapshot Recorder
+        run: |
+          python snapshot_recorder.py
+
+      - name: Commit and push updated history
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Automated Daily Market Snapshot [skip ci]"
+          file_pattern: "history/*.csv"
